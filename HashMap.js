@@ -1,10 +1,11 @@
 class HashMap {
-  constructor(initialCapcity=8){
+  constructor(initialCapacity=8) {
     this.length = 0;
     this._hashTable = [];
-    this._capactity = initialCapcity;
+    this._capacity = initialCapacity;
     this._deleted = 0;
   }
+
   get(key) {
     const index = this._findSlot(key);
     if (this._hashTable[index] === undefined) {
@@ -12,13 +13,20 @@ class HashMap {
     }
     return this._hashTable[index].value;
   }
+  has(key) {
+    const index = this._findSlot(key);
+    if (this._hashTable[index] === undefined) {
+      return false;
+    }
+    return true;
+  }
   set(key, value){
-    const loadRatio = (this.length +this._deleted + 1) / this._capactity;
+    const loadRatio = (this.length + this._deleted + 1) / this._capacity;
     if (loadRatio > HashMap.MAX_LOAD_RATIO) {
-      this._resize(this._capactity * HashMap.SIZE_RATIO);
+      this._resize(this._capacity * HashMap.SIZE_RATIO);
     }
     //Find the slot where this key should be in
-    const index = this._findSloct(key);
+    const index = this._findSlot(key);
 
     if(!this._hashTable[index]){
       this.length++;
@@ -27,8 +35,9 @@ class HashMap {
       key,
       value,
       DELETED: false
-    };
+    }; 
   }
+
   delete(key) {
     const index = this._findSlot(key);
     const slot = this._hashTable[index];
@@ -39,9 +48,10 @@ class HashMap {
     this.length--;
     this._deleted++;
   }
+
   _findSlot(key) {
     const hash = HashMap._hashString(key);
-    const start = hash % this._capactity;
+    const start = hash % this._capacity;
 
     for (let i=start; i<start + this._capacity; i++) {
       const index = i % this._capacity;
@@ -51,19 +61,22 @@ class HashMap {
       }
     }
   }
+
   _resize(size) {
-    const oldSlots = this._slots;
+    const oldSlots = this._hashTable;
     this._capacity = size;
     // Reset the length - it will get rebuilt as you add the items back
     this.length = 0;
-    this._slots = [];
+    this._deleted = 0;
+    this._hashTable = [];
 
     for (const slot of oldSlots) {
-      if (slot !== undefined) {
-        this.add(slot.key, slot.value);
+      if (slot !== undefined && !slot.DELETED) {
+        this.set(slot.key, slot.value);
       }
     }
   }
+
   static _hashString(string) {
     let hash = 5381;
     for (let i = 0; i < string.length; i++) {
@@ -79,4 +92,7 @@ class HashMap {
     return hash >>> 0;
   }
 }
+
+HashMap.MAX_LOAD_RATIO = 0.5;
+HashMap.SIZE_RATIO = 3;
 module.exports = HashMap;
